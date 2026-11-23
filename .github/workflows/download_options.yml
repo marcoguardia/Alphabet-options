@@ -1,0 +1,41 @@
+name: Download Alphabet Options Chain
+
+on:
+  schedule:
+    # 20:45 UTC = 14:45 CST (-06:00), Monday to Friday (15 min before 16:00 ET close in winter)
+    - cron: "45 20 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-options:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download GOOGL options chain
+        run: python download_options.py
+
+      - name: Commit and push updated CSV
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add alphabet_options_chain.csv
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Update GOOGL options chain ($(date -u +'%Y-%m-%d'))"
+            git push
+          fi
