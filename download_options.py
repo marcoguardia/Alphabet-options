@@ -7,7 +7,7 @@ import sys
 import pandas as pd
 import yfinance as yf
 
-TICKER = "GOOGL"
+TICKERS = ["GOOGL", "NFLX", "QQQ", "SPY"]
 OUTPUT_CSV = Path(__file__).parent / "alphabet_options_chain.csv"
 
 
@@ -49,15 +49,22 @@ def fetch_options_chain(ticker_symbol: str = TICKER) -> pd.DataFrame:
 
 
 def main() -> int:
-    try:
-        df = fetch_options_chain(TICKER)
-    except Exception as exc:
-        print(f"Error fetching options chain: {exc}", file=sys.stderr)
+    frames = []
+    for symbol in TICKERS:
+        try:
+            df = fetch_options_chain(symbol)
+            print(f"Fetched {len(df)} option contracts for {symbol}")
+            frames.append(df)
+        except Exception as exc:
+            print(f"Error fetching options chain for {symbol}: {exc}", file=sys.stderr)
+
+    if not frames:
         return 1
 
+    combined = pd.concat(frames, ignore_index=True)
     write_header = not OUTPUT_CSV.exists() or OUTPUT_CSV.stat().st_size == 0
-    df.to_csv(OUTPUT_CSV, mode="a", header=write_header, index=False)
-    print(f"Saved {len(df)} option contracts for {TICKER} to {OUTPUT_CSV}")
+    combined.to_csv(OUTPUT_CSV, mode="a", header=write_header, index=False)
+    print(f"Saved {len(combined)} total option contracts to {OUTPUT_CSV}")
     return 0
 
 
