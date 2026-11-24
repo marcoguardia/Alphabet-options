@@ -11,7 +11,7 @@ TICKERS = ["GOOGL", "NFLX", "QQQ", "SPY"]
 OUTPUT_CSV = Path(__file__).parent / "alphabet_options_chain.csv"
 
 
-def fetch_options_chain(ticker_symbol: str = TICKER) -> pd.DataFrame:
+def fetch_options_chain(ticker_symbol: str) -> pd.DataFrame:
     """Fetch all available call and put option chains for the given ticker."""
     ticker = yf.Ticker(ticker_symbol)
     expirations = ticker.options
